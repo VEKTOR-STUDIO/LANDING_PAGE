@@ -19,7 +19,7 @@ const translations = {
     },
     methodology: {
       label: "Proceso de Construcción", title: "Metodología Vektor",
-      stages: "etapas", scroll: "scroll →",
+      stages: "etapas", scroll: "scroll →", swipe: "desliza →",
       introPara: "Un proceso sistemático diseñado para reducir riesgo y maximizar el impacto de cada venture.",
       introItems: ["Discovery → Scale", "12–24 meses promedio"],
       duration: "Duración", milestone: "Meta",
@@ -119,7 +119,7 @@ const translations = {
     },
     methodology: {
       label: "Build Process", title: "Vektor Methodology",
-      stages: "stages", scroll: "scroll →",
+      stages: "stages", scroll: "scroll →", swipe: "swipe →",
       introPara: "A systematic process designed to reduce risk and maximize the impact of every venture we build.",
       introItems: ["Discovery → Scale", "12–24 month avg."],
       duration: "Duration", milestone: "Meta",

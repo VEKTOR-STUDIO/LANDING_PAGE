@@ -14,7 +14,7 @@ import { VektorMark } from "@/components/VektorMark";
 function PageContent() {
   const { t } = useLang();
   return (
-    <main className="min-h-screen bg-background selection:bg-primary/30 selection:text-primary-foreground relative overflow-hidden">
+    <main className="min-h-screen bg-background selection:bg-primary/30 selection:text-primary-foreground relative overflow-x-hidden">
       <Navbar />
       <WhatsAppButton />
 
