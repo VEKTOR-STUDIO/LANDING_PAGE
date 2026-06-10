@@ -72,32 +72,31 @@ export const HorizontalScroll: React.FC = () => {
       return;
     }
 
+    const section = sectionRef.current;
+    const wrapper = wrapperRef.current;
+    const track = trackRef.current;
+    if (!section || !wrapper || !track) return;
+
+    const getScrollDistance = () =>
+      Math.max(0, wrapper.scrollWidth - track.clientWidth);
+
     const ctx = gsap.context(() => {
-      if (!sectionRef.current || !wrapperRef.current) return;
-      const totalScroll = wrapperRef.current.scrollWidth - window.innerWidth;
-
-      ScrollTrigger.create({
-        trigger: sectionRef.current,
-        pin: true,
-        scrub: 1.2,
-        start: "top top",
-        end: `+=${totalScroll + 100}`,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          if (progressRef.current) progressRef.current.style.width = `${self.progress * 100}%`;
-        },
-      });
-
-      gsap.to(wrapperRef.current, {
-        x: -totalScroll,
+      gsap.to(wrapper, {
+        x: () => -getScrollDistance(),
         ease: "none",
         scrollTrigger: {
-          trigger: sectionRef.current,
-          scrub: 1.2,
+          trigger: section,
           start: "top top",
-          end: `+=${totalScroll + 100}`,
+          end: () => `+=${getScrollDistance()}`,
+          pin: true,
+          scrub: 1,
+          anticipatePin: 1,
           invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            if (progressRef.current) {
+              progressRef.current.style.width = `${self.progress * 100}%`;
+            }
+          },
         },
       });
 
@@ -111,21 +110,27 @@ export const HorizontalScroll: React.FC = () => {
           stagger: 0.12,
           ease: "power3.out",
           delay: 0.3,
-          scrollTrigger: { trigger: sectionRef.current, start: "top 80%", once: true },
+          scrollTrigger: { trigger: section, start: "top 80%", once: true },
         },
       );
-    }, sectionRef);
+    }, section);
 
     const refresh = () => ScrollTrigger.refresh();
+    const resizeObserver = new ResizeObserver(refresh);
+    resizeObserver.observe(wrapper);
+    resizeObserver.observe(track);
+
+    requestAnimationFrame(refresh);
     window.addEventListener("load", refresh);
     window.addEventListener("resize", refresh);
 
     return () => {
+      resizeObserver.disconnect();
       window.removeEventListener("load", refresh);
       window.removeEventListener("resize", refresh);
       ctx.revert();
     };
-  }, [useNative]);
+  }, [useNative, t]);
 
   useEffect(() => {
     if (!useNative) return;
