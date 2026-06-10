@@ -104,6 +104,8 @@
 
 .methodology-track {
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
   scrollbar-width: none;
 }
 

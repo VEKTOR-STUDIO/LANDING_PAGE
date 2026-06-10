@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useCallback } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import { useLang } from "@/contexts/LangContext";
-import { useNativeScroll } from "@/hooks/use-native-scroll";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -50,13 +49,11 @@ const NUMS = ["01", "02", "03", "04", "05"];
 
 export const HorizontalScroll: React.FC = () => {
   const { t } = useLang();
-  const useNative = useNativeScroll();
   const sectionRef = useRef<HTMLDivElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
 
-  const updateMobileProgress = useCallback(() => {
+  const updateProgress = useCallback(() => {
     const track = trackRef.current;
     if (!track || !progressRef.current) return;
     const max = track.scrollWidth - track.clientWidth;
@@ -65,41 +62,10 @@ export const HorizontalScroll: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (useNative) {
-      if (wrapperRef.current) {
-        gsap.set(wrapperRef.current, { clearProps: "transform" });
-      }
-      return;
-    }
-
     const section = sectionRef.current;
-    const wrapper = wrapperRef.current;
-    const track = trackRef.current;
-    if (!section || !wrapper || !track) return;
-
-    const getScrollDistance = () =>
-      Math.max(0, wrapper.scrollWidth - track.clientWidth);
+    if (!section) return;
 
     const ctx = gsap.context(() => {
-      gsap.to(wrapper, {
-        x: () => -getScrollDistance(),
-        ease: "none",
-        scrollTrigger: {
-          trigger: section,
-          start: "top top",
-          end: () => `+=${getScrollDistance()}`,
-          pin: true,
-          scrub: 1,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-          onUpdate: (self) => {
-            if (progressRef.current) {
-              progressRef.current.style.width = `${self.progress * 100}%`;
-            }
-          },
-        },
-      });
-
       gsap.fromTo(
         ".step-card",
         { opacity: 0, y: 40 },
@@ -115,32 +81,22 @@ export const HorizontalScroll: React.FC = () => {
       );
     }, section);
 
-    const refresh = () => ScrollTrigger.refresh();
-    const resizeObserver = new ResizeObserver(refresh);
-    resizeObserver.observe(wrapper);
-    resizeObserver.observe(track);
-
-    requestAnimationFrame(refresh);
-    window.addEventListener("load", refresh);
-    window.addEventListener("resize", refresh);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener("load", refresh);
-      window.removeEventListener("resize", refresh);
-      ctx.revert();
-    };
-  }, [useNative, t]);
+    return () => ctx.revert();
+  }, [t]);
 
   useEffect(() => {
-    if (!useNative) return;
     const track = trackRef.current;
     if (!track) return;
 
-    updateMobileProgress();
-    track.addEventListener("scroll", updateMobileProgress, { passive: true });
-    return () => track.removeEventListener("scroll", updateMobileProgress);
-  }, [useNative, updateMobileProgress, t]);
+    updateProgress();
+    track.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateProgress);
+
+    return () => {
+      track.removeEventListener("scroll", updateProgress);
+      window.removeEventListener("resize", updateProgress);
+    };
+  }, [updateProgress, t]);
 
   const steps = t.methodology.steps;
 
@@ -148,11 +104,7 @@ export const HorizontalScroll: React.FC = () => {
     <section
       ref={sectionRef}
       id="methodology"
-      className={
-        useNative
-          ? "min-h-screen bg-background relative flex flex-col"
-          : "h-screen bg-background overflow-hidden relative flex flex-col"
-      }
+      className="min-h-screen bg-background relative flex flex-col"
     >
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:60px_60px] pointer-events-none" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
@@ -170,7 +122,7 @@ export const HorizontalScroll: React.FC = () => {
         <div className="flex items-center gap-2 text-white/25 text-xs font-mono">
           <span>{steps.length} {t.methodology.stages}</span>
           <span className="text-white/10">·</span>
-          <span>{useNative ? t.methodology.swipe : t.methodology.scroll}</span>
+          <span>{t.methodology.swipe}</span>
         </div>
       </div>
 
@@ -183,17 +135,10 @@ export const HorizontalScroll: React.FC = () => {
 
       <div
         ref={trackRef}
-        className={
-          useNative
-            ? "methodology-track flex-1 overflow-x-auto overflow-y-visible overscroll-x-contain touch-pan-x snap-x snap-mandatory"
-            : "flex-1 flex items-center overflow-hidden"
-        }
+        className="methodology-track flex-1 overflow-x-auto overflow-y-visible overscroll-x-contain touch-pan-x snap-x snap-mandatory"
       >
-        <div
-          ref={wrapperRef}
-          className="flex gap-6 px-6 md:px-20 min-w-max items-stretch py-8"
-        >
-          <div className={`w-[220px] flex flex-col justify-center gap-5 pr-8 border-r border-white/[0.06] flex-shrink-0 ${useNative ? "snap-start" : ""}`}>
+        <div className="flex gap-6 px-6 md:px-20 min-w-max items-stretch py-8">
+          <div className="w-[220px] flex flex-col justify-center gap-5 pr-8 border-r border-white/[0.06] flex-shrink-0 snap-start">
             <p className="text-white/35 text-sm font-light leading-relaxed">{t.methodology.introPara}</p>
             <div className="space-y-2">
               {t.methodology.introItems.map((item) => (
@@ -210,7 +155,7 @@ export const HorizontalScroll: React.FC = () => {
             return (
               <div
                 key={index}
-                className={`step-card relative w-[min(340px,85vw)] md:w-[400px] flex-shrink-0 rounded-2xl overflow-hidden group cursor-default ${useNative ? "snap-center" : ""}`}
+                className="step-card relative w-[min(340px,85vw)] md:w-[400px] flex-shrink-0 rounded-2xl overflow-hidden group cursor-default snap-center"
                 style={{ background: "linear-gradient(140deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.01) 100%)", border: `1px solid ${border}`, backdropFilter: "blur(12px)" }}
               >
                 <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, color-mix(in srgb, ${accent} 80%, transparent), transparent 60%)` }} />
