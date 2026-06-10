@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build outputs
+dist/
+build/
+coverage/
+*/dist/
+*/build/
+*/coverage/
+
+# Vite and tooling caches
+.vite/
+*/.vite/
+.turbo/
+.next/
+.cache/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Replit/Cursor generated artifacts
+.replit-artifact/
+dist/public/
